@@ -21,7 +21,7 @@ export default function Home() {
       <h1>Catálogo Digital</h1>
       {products.length > 0 ? (
         <>
-          <ProductFilter products={products} logoUrl="/logo.png" />
+          <ProductFilter products={products} logoUrl="/Logo.png" />
         </>
       ) : (
         <p>Cargando catálogo...</p>

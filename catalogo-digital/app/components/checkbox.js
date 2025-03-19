@@ -90,7 +90,7 @@ export default function ProductFilter({ products, logoUrl }) {
           Mostrar solo productos con stock
         </label>
       </div>
-      <DownloadCatalogButton filteredProducts={filteredProducts} logoUrl="/logo.png" />
+      <DownloadCatalogButton filteredProducts={filteredProducts} logoUrl="/Logo.png" />
       
 
       <div className="product-list">
