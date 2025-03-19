@@ -1,0 +1,189 @@
+/* styles.css */
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f0fbfa;
+}
+
+/* Estilo para la sección del catálogo */
+.catalog-container {
+  padding: 20px;
+  background-color: #f0fbfa;
+}
+
+.catalog-header {
+  text-align: center;
+}
+
+.catalog-header h1 {
+  color: #1b8da5;
+}
+
+/* Estilo para el filtro de marcas */
+.brand-filter {
+  margin-top: 20px;
+}
+
+.brand-filter button {
+  background-color: #21b5d5;
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  width: 100%;
+  text-align: left;
+  border-radius: 5px;
+}
+
+.brand-dropdown {
+  margin-top: 10px;
+  background-color: #a4e1ec;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-item input {
+  margin-right: 10px;
+}
+
+.checkbox-item label {
+  font-size: 14px;
+  color: #333;
+}
+
+/* Estilo para el filtro de stock */
+.stock-filter {
+  margin-top: 20px;
+}
+
+.stock-filter input {
+  margin-right: 8px;
+}
+
+.stock-filter label {
+  font-size: 14px;
+  color: #333;
+}
+
+/* Estilo para la lista de productos */
+.product-list {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.product-card {
+  border: 1px solid #ccc;
+  padding: 15px;
+  text-align: center;
+  background-color: #ffffff;
+  border-radius: 8px;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease;
+}
+
+.product-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.product-card img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 5px;
+}
+
+.product-card h2 {
+  font-size: 18px;
+  margin-top: 10px;
+  color: #333;
+}
+
+.product-card p {
+  font-size: 14px;
+  margin-top: 5px;
+  color: #555;
+}
+
+/* Estilo para los botones */
+button {
+  background-color: #21b5d5;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #1b8da5;
+}
+
+/* Estilos para el logo */
+.catalog-header img {
+  border-radius: 8px;
+}
+/* Título de la marca */
+.brand-title {
+  margin-top: 30px;
+  margin-bottom: 15px;
+  padding-left: 10px;
+  font-size: 18px;
+  color: #21b5d5;
+  font-weight: 600;
+  border-left: 3px solid #21b5d5;
+}
+
+.brand-title h3 {
+  font-size: 16px;
+  color: #1b8da5;
+  margin: 0;
+  padding: 0;
+  font-weight: normal;
+  text-transform: capitalize;
+}
+
+/* Estilo responsive para pantallas pequeñas */
+@media (max-width: 768px) {
+  .product-list {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .brand-dropdown {
+    padding: 10px;
+  }
+
+  .checkbox-item label {
+    font-size: 12px;
+  }
+
+  .product-card {
+    padding: 10px;
+  }
+
+  .product-card h2 {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .brand-filter button {
+    font-size: 14px;
+  }
+
+  .product-card {
+    padding: 8px;
+  }
+}
