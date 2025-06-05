@@ -1,120 +1,205 @@
+'use client'
+import React, { useState } from 'react';
 import { jsPDF } from 'jspdf';
 
-const generateCatalog = (products, logoUrl) => {
-  const doc = new jsPDF();
-  let y = 10;  // Inicializamos la posición Y para la primera página
-  let x = 10;
-  const margin = 5; // Margen entre los productos
-  const productWidth = 45; // Ancho de la celda del producto para 4 por fila
-  const productHeight = 80; // Altura de la celda del producto, más espacio para la imagen
-  const maxNameLength = 30; // Longitud máxima para el nombre del producto
-
-  // Función para agregar logo
-  const addLogo = () => {
-    if (logoUrl) {
-      doc.addImage(logoUrl, 'JPEG', 10, 10, 40, 40);  // Ajusta la posición y tamaño del logo
-    }
-  };
-
-  // Función para agregar un título (solo en la primera página)
-  const addTitle = () => {
-    doc.setFontSize(14); // Reducimos el tamaño de la fuente del título
-    doc.setTextColor('#21b5d5');
-    y = 30;  // Después del título, dejamos espacio para los productos
-  };
-
-  // Función para agregar un título por marca (hacerlo más llamativo)
-  const addBrandTitle = (brand) => {
-    doc.setFontSize(16); // Aumentamos el tamaño de la fuente para hacerlo más llamativo
-    doc.setFont('helvetica', 'bold'); // Usamos negritas
-    doc.setTextColor('#21b5d5'); // Usamos un color más llamativo
-    const pageWidth = doc.internal.pageSize.width; // Ancho de la página
-    const titleWidth = doc.getTextWidth(brand); // Ancho del título
-    const xPosition = pageWidth - titleWidth - 10; // Colocamos el título a la derecha con un margen de 10
-    doc.text(brand, xPosition, y);  // Dibuja el título de la marca a la derecha
-    y += 10;  // Espacio después del título de la marca
-  };
-
-  // Función para agregar un producto en el formato de rejilla (4 por fila)
-  const addProduct = (product, index) => {
-    // Si se alcanza el límite de 4 productos por fila, pasamos a la siguiente fila
-    if (index > 0 && index % 4 === 0) {
-      y += productHeight + 5;  // Si se alcanzan 4 productos, pasamos a la siguiente fila
-      x = 10;   // Reiniciar la posición X
-    }
-
-    // Dibuja una celda para cada producto
-    doc.setFontSize(10); // Reducimos el tamaño de la fuente del producto
-    doc.setTextColor('#000000');
-
-    // Mostrar la imagen del producto (más estirada)
-    const imageUrl = product.LinkFoto;
-    if (imageUrl) {
-      // Agregar la imagen del producto (se ajusta al tamaño de la celda)
-      doc.addImage(imageUrl, 'JPEG', x + 5, y + 5, productWidth - 10, 30); // Imagen estirada
-    }
-
-    // Ajuste del texto en nombre (corte de línea para evitar desbordamiento)
-    const name = product.NombreArtículo;
-    const nameLines = doc.splitTextToSize(name, productWidth - 10); // Corta el nombre si es demasiado largo
-
-    // Agregar el texto dentro del cuadro del producto
-    doc.text(nameLines, x + 5, y + 40); // Nombre debajo de la imagen
-
-    // Resaltar el Código de Artículo dentro de la 'card' con el color #21b5d5
-    doc.setFontSize(12);  // Mantener tamaño normal
-    doc.setFont('helvetica', 'normal'); // Cambiar a fuente normal para el código
-    doc.setTextColor('#21b5d5');  // Color #21b5d5 para el código
-    doc.text(`Cod: ${product.CódigoArtículo}`, x + 5, y + 60);  // Resaltar código
-
-    x += productWidth + margin;  // Ajusta la posición X para el siguiente producto
-
-    if (y > 240) {
-      doc.addPage();
-      addLogo();  // Agregar el logo en cada página
-      y = 30; // Reiniciar Y en la nueva página para comenzar desde la parte superior
-      x = 10; // Reiniciar la posición X en la nueva página para comenzar desde el principio
-    }
-  };
-
-  // Agregar el logo y título en la primera página
-  addLogo();
-  addTitle();
-
-  let currentBrand = null;
-
-  // Agregar los productos en formato de rejilla por marca
-  products.forEach((product, index) => {
-    // Si la marca del producto cambia, agregamos un nuevo título para la marca
-    if (product.Marcas !== currentBrand) {
-      // Si estamos agregando un título para una nueva marca, se agrega una nueva página
-      if (index > 0) {
-        doc.addPage();  // Forzamos el cambio de página cuando cambia la marca
-        addLogo();  // Agregar el logo en la nueva página
-        addTitle(); // Agregar el título en la nueva página
-
-        // Reiniciar la posición Y cuando cambiamos de página
-        y = 30; // Reiniciamos Y para que la nueva marca comience desde la parte superior
-        x = 10; // Reiniciar la posición X
-      }
-      
-      // Reiniciar las posiciones para la nueva marca
-      currentBrand = product.Marcas;
-      addBrandTitle(currentBrand);  // Agregar el título de la marca
-    }
-
-    addProduct(product, index); // Agregar el producto
+const compressImage = (url) => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', 1); // calidad máxima
+      resolve(compressedDataUrl);
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
   });
+};
 
-  // Guardar el archivo PDF
+const generateCatalog = async (products, logoUrl, setProgress) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  let y = 40;
+  let x = 15;
+  const margin = 15;
+  const productWidth = 45;
+  const productHeight = 68;
+  const spacing = 12;
+
+  const productsPerRow = Math.floor((pageWidth - margin * 2 + spacing) / (productWidth + spacing));
+  let rowCount = 0;
+  let productInRow = 0;
+
+  const addHeader = () => {
+    doc.setFillColor(27, 141, 165);
+    doc.rect(0, 0, pageWidth, 30, 'F');
+
+    if (logoUrl) {
+      try {
+        doc.addImage(logoUrl, 'JPEG', 10, 5, 20, 20);
+      } catch {}
+    }
+
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255);
+    doc.text('Catálogo de Productos', pageWidth / 2, 20, { align: 'center' });
+
+    y = 40;
+  };
+
+  const addBrandTitle = (brand) => {
+    y += 10;
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor('#1b8da5');
+    doc.text(brand.toUpperCase(), margin, y);
+    y += 5;
+
+    doc.setDrawColor('#1b8da5');
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 5;
+  };
+
+  const addNewPage = () => {
+    doc.addPage();
+    addHeader();
+    y = 40;
+    x = margin;
+    rowCount = 0;
+    productInRow = 0;
+  };
+
+  const addProduct = async (product) => {
+    if (productInRow === productsPerRow) {
+      y += productHeight + spacing;
+      x = margin;
+      productInRow = 0;
+      rowCount++;
+    }
+
+    if (rowCount === 3) {
+      addNewPage();
+    }
+
+    doc.setDrawColor(180);
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(x, y, productWidth, productHeight, 3, 3, 'FD');
+
+    if (product.LinkFoto) {
+      try {
+        const compressedImg = await compressImage(product.LinkFoto, productWidth - 10, 30);
+        if (compressedImg) {
+          doc.addImage(compressedImg, 'JPEG', x + 5, y + 5, productWidth - 10, 30);
+        } else {
+          throw new Error('No se pudo comprimir la imagen');
+        }
+      } catch {
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text('Sin imagen', x + 10, y + 20);
+      }
+    } else {
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      doc.text('Sin imagen', x + 10, y + 20);
+    }
+
+    if (product.Descuento !== undefined) {
+      doc.setFontSize(8);
+      doc.setTextColor(220, 53, 69);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`-${product.Descuento}%`, x + productWidth / 2, y + 38, { align: 'center' });
+    }
+
+    if (product.PrecioFinal !== undefined) {
+      doc.setFontSize(10);
+      doc.setTextColor(40, 167, 69);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`$${product.PrecioFinal}`, x + productWidth / 2, y + 45, { align: 'center' });
+    }
+
+    doc.setFontSize(8);
+    doc.setTextColor(0);
+    doc.setFont('helvetica', 'normal');
+    const centerX = x + productWidth / 2;
+    const nameLines = doc.splitTextToSize(product.NombreArtículo, productWidth - 4);
+    const lineHeight = 4;
+    nameLines.forEach((line, i) => {
+      doc.text(line, centerX, y + 50 + i * lineHeight, { align: 'center' });
+    });
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor('#1b8da5');
+    doc.text(`Cod: ${product.CódigoArtículo}`, centerX, y + productHeight - 5, { align: 'center' });
+
+    x += productWidth + spacing;
+    productInRow++;
+  };
+
+  addHeader();
+
+  let currentBrand = '';
+  for (let i = 0; i < products.length; i++) {
+    const product = products[i];
+    if (product.Marcas !== currentBrand) {
+      if (i > 0) {
+        doc.addPage();
+        addHeader();
+        y = 40;
+        x = margin;
+        rowCount = 0;
+        productInRow = 0;
+      }
+      currentBrand = product.Marcas;
+      addBrandTitle(currentBrand);
+    }
+
+    await addProduct(product);
+
+    // Actualizamos el progreso (de 0 a 100%)
+    setProgress(Math.floor(((i + 1) / products.length) * 100));
+  }
+
   doc.save('catalogo.pdf');
+  setProgress(0);
 };
 
 export default function DownloadCatalogButton({ filteredProducts, logoUrl }) {
+  const [progress, setProgress] = useState(0);
+
   return (
-    <button onClick={() => generateCatalog(filteredProducts, logoUrl)}>
-      Descargar Catálogo
-    </button>
+    <div>
+      <button onClick={() => generateCatalog(filteredProducts, logoUrl, setProgress)}>
+        Descargar Catálogo
+      </button>
+      {progress > 0 && (
+        <div style={{ marginTop: 10, width: '100%', backgroundColor: '#eee', height: 20, borderRadius: 10 }}>
+          <div
+            style={{
+              width: `${progress}%`,
+              height: '100%',
+              backgroundColor: '#1b8da5',
+              borderRadius: 10,
+              transition: 'width 0.3s ease',
+              textAlign: 'center',
+              color: 'white',
+              fontWeight: 'bold',
+              lineHeight: '20px',
+              userSelect: 'none',
+            }}
+          >
+            {progress}%
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
-

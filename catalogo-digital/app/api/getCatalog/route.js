@@ -4,7 +4,7 @@ import path from 'path';
 
 export async function GET() {
   try {
-    const filePath = path.join(process.cwd(), 'public', 'datos', 'catalogo.xlsx');
+    const filePath = path.join(process.cwd(), 'public', 'datos', 'catalogoweb.xlsx');
     if (!fs.existsSync(filePath)) {
       return new Response(JSON.stringify({ error: 'El archivo catalogo.xlsx no existe en public/datos/' }), { status: 404 });
     }
