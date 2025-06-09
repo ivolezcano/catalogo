@@ -27,8 +27,8 @@ const generateCatalog = async (products, logoUrl, setProgress) => {
   let y = 40;
   let x = 15;
   const margin = 15;
-  const productWidth = 45;
-  const productHeight = 68;
+  const productWidth = 50;
+  const productHeight = 72;
   const spacing = 12;
 
   const productsPerRow = Math.floor((pageWidth - margin * 2 + spacing) / (productWidth + spacing));
@@ -115,14 +115,14 @@ const generateCatalog = async (products, logoUrl, setProgress) => {
       doc.setFontSize(8);
       doc.setTextColor(220, 53, 69);
       doc.setFont('helvetica', 'bold');
-      doc.text(`-${product.Descuento}%`, x + productWidth / 2, y + 38, { align: 'center' });
+      doc.text(`${product.Descuento*100}%`, x + productWidth / 2, y + 38, { align: 'center' });
     }
 
     if (product.PrecioFinal !== undefined) {
       doc.setFontSize(10);
       doc.setTextColor(40, 167, 69);
       doc.setFont('helvetica', 'bold');
-      doc.text(`$${product.PrecioFinal}`, x + productWidth / 2, y + 45, { align: 'center' });
+      doc.text(`${product.PrecioFinal}`, x + productWidth / 2, y + 45, { align: 'center' });
     }
 
     doc.setFontSize(8);
