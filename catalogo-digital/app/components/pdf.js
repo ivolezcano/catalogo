@@ -11,7 +11,15 @@ const compressImage = (url) => {
       canvas.width = img.width;
       canvas.height = img.height;
       const ctx = canvas.getContext('2d');
+
+      // Rellenar el fondo con blanco
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Dibujar la imagen encima
       ctx.drawImage(img, 0, 0);
+
+      // Exportar como JPEG
       const compressedDataUrl = canvas.toDataURL('image/jpeg', 1); // calidad máxima
       resolve(compressedDataUrl);
     };
