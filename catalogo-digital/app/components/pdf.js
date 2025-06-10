@@ -120,10 +120,10 @@ const generateCatalog = async (products, logoUrl, setProgress) => {
     }
 
     if (product.Descuento !== undefined) {
-      doc.setFontSize(8);
+      doc.setFontSize(12);
       doc.setTextColor(220, 53, 69);
       doc.setFont('helvetica', 'bold');
-      doc.text(`${product.Descuento*100}%`, x + productWidth / 2, y + 38, { align: 'center' });
+      doc.text(`${product.Descuento}%`, x + productWidth / 2, y + 38, { align: 'center' });
     }
 
     if (product.PrecioFinal !== undefined) {
